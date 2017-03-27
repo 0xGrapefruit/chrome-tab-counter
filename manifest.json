@@ -2,7 +2,7 @@
   "manifest_version": 2,
 
   "name": "Tab counter",
-  "description": "This extension counts how many times you've opened a tab of facebook",
+  "description": "Counts how many times you've opened a tab of facebook",
   "version": "1.0",
 
   "background": {
@@ -16,7 +16,7 @@
   },
   "permissions": [
     "tabs",
-    "storage",
-    "https://ajax.googleapis.com/"
+    "webNavigation",
+    "storage"
   ]
 }
