@@ -1,32 +1,41 @@
-/*
-This extension tracks how many times you've opened a tab of facebook.
-
-Steps:
-1) Get an event listener that can track opening a tab of facebook
-a) This means when a tab goes from empty tab to facebook
-2) Store instances of this. That means save a timestamp.
-3) Display how many times facebook has been opened in the last day.
-*/
-
+//Main logic of program
 chrome.tabs.onCreated.addListener(
   function (tab){
     chrome.webNavigation.onCompleted.addListener(
       function updater(tabId, changeInfo, tab){
         let targetUrl = "*://www.facebook.com/"; //Used for query
         let target = 'facebook'; //Assumed user input.
+        let currentTime = Date.now();
         chrome.tabs.query({active: true, url: targetUrl}, function(tabs){
-          if (tabs.length>0){ //If query is true
-            console.log("Working!");
-            chrome.storage.sync.get(target, function(obj){
-              console.log(obj);
+          if (tabs.length>0){ //If current tab is facebook.
+            chrome.storage.sync.get([target,"lastUpdated"], function(obj){
               if (obj.hasOwnProperty(target)){
-                console.log("in property");
-                let newVal = obj[target] + 1;
                 let updateObject = {};
-                updateObject[target] = newVal; //This notation is for variables within objects.
+                let newVal = -1;
+                console.log(obj);
+                if (obj.lastUpdated===undefined || currentTime>obj.lastUpdated+86400000){
+                  console.log("In undef");
+                  newVal = 1;
+                  updateObject[target] = newVal; //This notation is for variables within objects.
+                  let midnightTime = getMidnightTime(currentTime);
+                  updateObject.lastUpdated = midnightTime;
+                } else {
+                  console.log("in else");
+                  newVal = obj[target] + 1;
+                  updateObject = {};
+                  updateObject[target] = newVal; //This notation is for variables within objects.
+                }
+                console.log(updateObject);
                 chrome.storage.sync.set(updateObject, function(){
                   console.log("Updated value:" + newVal);
                   chrome.webNavigation.onCompleted.removeListener(updater);
+                  let options = {
+                    type: "basic",
+                    title: "Facebook Shamer",
+                    iconUrl: "/icon.png",
+                    message: "You've opened a facebook tab " + newVal + " times today"
+                  }
+                  chrome.notifications.create("", options, function(){});
                 });
               } else {
                 updateObject = {};
@@ -34,6 +43,13 @@ chrome.tabs.onCreated.addListener(
                 chrome.storage.sync.set(updateObject, function(){
                   console.log("Value not found, created new one");
                   chrome.webNavigation.onCompleted.removeListener(updater);
+                  chrome.webNavigation.onCompleted.removeListener(updater);
+                  let options = {
+                    type: "basic",
+                    title: "Facebook Shamer",
+                    iconUrl: "/icon.png",
+                    message: "You've opened a facebook tab 1 time today"
+                  }
                 });
               }
             });
@@ -42,3 +58,8 @@ chrome.tabs.onCreated.addListener(
     });
   }
 );
+
+function getMidnightTime(currentTime){
+  let midnightTime = currentTime - (currentTime % 86400000);
+  return midnightTime;
+}

@@ -12,11 +12,12 @@
 
   "browser_action": {
     "default_icon": "icon.png",
-    "default_popup": "tabs.html"
+    "default_popup": "popup.html"
   },
   "permissions": [
     "tabs",
     "webNavigation",
+    "notifications",
     "storage"
   ]
 }
